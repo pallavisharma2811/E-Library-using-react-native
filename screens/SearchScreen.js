@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import {RFValue} from "react-native-responsive-fontsize";
 
 export default class SearchScreen extends React.Component {
   render(){
