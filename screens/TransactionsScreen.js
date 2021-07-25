@@ -4,6 +4,8 @@ import * as Permissions from "expo-permissions";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { RFValue } from "react-native-responsive-fontsize";
 
+import db from '../config';
+
 export default class TransactionScreen extends React.Component {
   constructor(props) {
     super(props);
@@ -12,7 +14,6 @@ export default class TransactionScreen extends React.Component {
       hasCameraPermissions: null,
       domState: "normal",
       scanned: false,
-      scannedData: "",
       scannedStudentId: "",
       scannedBookId: "",
     };
@@ -44,10 +45,36 @@ export default class TransactionScreen extends React.Component {
         domState: "normal",
       });
     }
-
   };
+
+  initiateBookIssue = () => {
+    console.log("Book Issued Successfully!");
+  }
+
+  initiateBookReturn = () => {
+    console.log("Book Returned Successfully!");
+  }
+
+  handleTransaction = async () => {
+    //db.collection().doc() returns a promise(going to act as it is received)
+    //.then() receives the document as a default argument.
+    //doc.data() get all the information stored in the document
+
+    var { scannedBookId } = this.state;
+    db.collection('books').doc(scannedBookId).get().then((doc) => {
+      var book = doc.data();
+      console.log(book)
+      if (book.bookAvailability) {
+        this.initiateBookIssue()
+      } else {
+        this.initiateBookReturn()
+      }
+    })
+
+  }
+
   render() {
-    const { hasCameraPermissions, domState, scanned, scannedData } = this.state;
+    const { hasCameraPermissions, domState, scanned } = this.state;
 
     if (hasCameraPermissions && domState !== "normal") {
       return (
@@ -67,7 +94,7 @@ export default class TransactionScreen extends React.Component {
               placeholder="Student ID"
               onChangeText={(text) => { this.setState({ scannedStudentId: text }) }}
               style={styles.input}
-              placeholderTextColor= "white"
+              placeholderTextColor="white"
             />
             <TouchableOpacity
               onPress={() => {
@@ -75,7 +102,7 @@ export default class TransactionScreen extends React.Component {
               }}
               style={styles.button}
             >
-              <Text>Scan</Text>
+              <Text style={[styles.buttonText, { fontSize: RFValue(12) }]}>Scan</Text>
             </TouchableOpacity>
 
           </View>
@@ -87,7 +114,7 @@ export default class TransactionScreen extends React.Component {
               placeholder="Book ID"
               onChangeText={(text) => { this.setState({ scannedBookId: text }) }}
               style={styles.input}
-              placeholderTextColor= "white"
+              placeholderTextColor="white"
             />
             <TouchableOpacity
               onPress={() => {
@@ -95,10 +122,20 @@ export default class TransactionScreen extends React.Component {
               }}
               style={styles.button}
             >
-              <Text>Scan</Text>
+              <Text style={[styles.buttonText, { fontSize: RFValue(12) }]}>Scan</Text>
             </TouchableOpacity>
 
           </View>
+
+          <TouchableOpacity
+            onPress={() => {
+              this.handleTransaction();
+            }}
+            style={styles.submitButton}
+          >
+            <Text style={styles.buttonText}>Submit</Text>
+          </TouchableOpacity>
+
         </View>
       );
     }
@@ -138,8 +175,9 @@ const styles = StyleSheet.create({
     color: "white"
   },
   submitButton: {
+    marginTop: RFValue(20),
     width: RFValue(100),
-    height: RFValue(30),
+    height: RFValue(40),
     backgroundColor: 'orange',
     borderRadius: RFValue(10),
     marginVertical: RFValue(10),
@@ -147,4 +185,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center"
   },
+  buttonText: {
+    fontWeight: "bold",
+    color: "white",
+    fontSize: RFValue(18)
+  }
 });
